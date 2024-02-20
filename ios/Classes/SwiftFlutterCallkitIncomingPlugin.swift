@@ -448,7 +448,7 @@ public class SwiftFlutterCallkitIncomingPlugin: NSObject, FlutterPlugin, CXProvi
                 try session.setPreferredSampleRate(data?.audioSessionPreferredSampleRate ?? 44100.0)
                 try session.setPreferredIOBufferDuration(data?.audioSessionPreferredIOBufferDuration ?? 0.005)
             }catch{
-                print(error)
+                print("配置音頻會話失敗: \(error)")
             }
         }
     }
@@ -526,11 +526,43 @@ public class SwiftFlutterCallkitIncomingPlugin: NSObject, FlutterPlugin, CXProvi
             self?.sharedProvider?.reportOutgoingCall(with: call.uuid, connectedAt: call.connectedData)
         }
         self.answerCall = call
-        sendEvent(SwiftFlutterCallkitIncomingPlugin.ACTION_CALL_ACCEPT, self.data?.toJSON())
-        if let appDelegate = UIApplication.shared.delegate as? CallkitIncomingAppDelegate {
-            appDelegate.onAccept(call, action)
-        }else {
+//        sendEvent(SwiftFlutterCallkitIncomingPlugin.ACTION_CALL_ACCEPT, self.data?.toJSON())
+//        if let appDelegate = UIApplication.shared.delegate as? CallkitIncomingAppDelegate {
+//            appDelegate.onAccept(call, action)
+//            print("appDelegate.onAccept(call, action)")
+//        }else {
+//            action.fulfill()
+//        }
+        checkUnlockedAndFulfill(action: action, counter: 0)
+    }
+    
+    private func checkUnlockedAndFulfill(action: CXAnswerCallAction, counter: Int) {
+        print("counter \(counter)")
+        if UIApplication.shared.isProtectedDataAvailable,
+         UIApplication.shared.applicationState == .active // <-- This
+        {
+          // Add your videocall view to view hierarchy here, not before
+            print("isProtectedDataAvailable \(UIApplication.shared.isProtectedDataAvailable)")
             action.fulfill()
+            sendEvent(SwiftFlutterCallkitIncomingPlugin.ACTION_CALL_ACCEPT, self.data?.toJSON())
+        } else if counter > 30 { // Timeout in seconds
+
+            action.fail()
+
+        } else {
+            
+            action.fulfill()
+            var callData = [String : Any?]()
+            if self.data != nil {
+                callData = self.data!.toJSON()
+                callData["isScreenLocked"] = true
+            }
+            sendEvent(SwiftFlutterCallkitIncomingPlugin.ACTION_CALL_ACCEPT, callData)
+            print("isProtectedDataAvailable f: \(UIApplication.shared.isProtectedDataAvailable)")
+//            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+//
+//                self.checkUnlockedAndFulfill(action: action, counter: counter + 1)
+//            }
         }
     }
     
