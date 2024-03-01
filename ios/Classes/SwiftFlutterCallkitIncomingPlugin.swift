@@ -543,6 +543,7 @@ public class SwiftFlutterCallkitIncomingPlugin: NSObject, FlutterPlugin, CXProvi
         {
           // Add your videocall view to view hierarchy here, not before
             print("isProtectedDataAvailable \(UIApplication.shared.isProtectedDataAvailable)")
+            print("UIApplication.shared.applicationState \(UIApplication.shared.applicationState)")
             action.fulfill()
             sendEvent(SwiftFlutterCallkitIncomingPlugin.ACTION_CALL_ACCEPT, self.data?.toJSON())
         } else if counter > 30 { // Timeout in seconds
@@ -559,6 +560,7 @@ public class SwiftFlutterCallkitIncomingPlugin: NSObject, FlutterPlugin, CXProvi
             }
             sendEvent(SwiftFlutterCallkitIncomingPlugin.ACTION_CALL_ACCEPT, callData)
             print("isProtectedDataAvailable f: \(UIApplication.shared.isProtectedDataAvailable)")
+            print("UIApplication.shared.applicationState f: \(UIApplication.shared.applicationState)")
 //            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
 //
 //                self.checkUnlockedAndFulfill(action: action, counter: counter + 1)
